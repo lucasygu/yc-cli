@@ -99,6 +99,32 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  clawhub-publish:
+    needs: [build, check-version]
+    if: needs.check-version.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install clawhub CLI
+        run: npm install -g clawhub
+
+      - name: Authenticate with ClawHub
+        env:
+          CLAWHUB_TOKEN: ${{ secrets.CLAWHUB_TOKEN }}
+        run: clawhub login --token "$CLAWHUB_TOKEN" --no-browser
+
+      - name: Publish to ClawHub
+        env:
+          SKILL_VERSION: ${{ needs.check-version.outputs.current }}
+        run: clawhub publish . --slug yc --name "yc" --version "$SKILL_VERSION"
+
   skip:
     needs: [build, check-version]
     if: needs.check-version.outputs.changed != 'true'

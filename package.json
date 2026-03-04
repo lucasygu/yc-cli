@@ -1,7 +1,7 @@
 {
   "name": "@lucasygu/yc-cli",
-  "version": "0.1.0",
-  "description": "CLI tool for Y Combinator Startup School — submit weekly updates, track progress, manage your YC journey from the terminal",
+  "version": "0.2.0",
+  "description": "CLI for YC Startup School + a16z Speedrun — weekly updates, dashboard, applications from the terminal",
   "type": "module",
   "main": "./dist/lib/client.js",
   "exports": {
@@ -33,6 +33,8 @@
     "ycombinator",
     "yc",
     "startup-school",
+    "a16z",
+    "speedrun",
     "cli",
     "claude-code",
     "claude-code-skill"
@@ -49,7 +51,8 @@
   "dependencies": {
     "@steipete/sweet-cookie": "^0.1.0",
     "commander": "^13.1.0",
-    "kleur": "^4.1.5"
+    "kleur": "^4.1.5",
+    "playwright": "^1.58.2"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

@@ -1,8 +1,8 @@
 ---
-description: Manage Y Combinator Startup School from the terminal — weekly updates, dashboard, progress tracking
+description: CLI for YC Startup School, a16z Speedrun, and South Park Commons — weekly updates, dashboard, applications
 allowed-tools: Bash, Read, Write
 name: yc
-version: 0.1.0
+version: 0.2.0
 metadata:
   openclaw:
     requires:
@@ -17,31 +17,53 @@ metadata:
 tags:
   - ycombinator
   - startup-school
+  - a16z
+  - speedrun
+  - south-park-commons
+  - spc
   - productivity
 ---
 
-# YC CLI — Y Combinator Startup School
+# YC CLI — YC Startup School, a16z Speedrun, and South Park Commons
 
-CLI tool for managing your YC Startup School journey. Submit weekly updates, track your streak, and view your dashboard — all from the terminal.
+CLI tool for managing your YC Startup School journey, submitting a16z Speedrun applications, and applying to South Park Commons — all from the terminal.
 
 ## Prerequisites
 
 - Node.js 22+
-- Logged into [startupschool.org](https://www.startupschool.org/) in Chrome
-- macOS (for cookie extraction from Chrome Keychain)
+- For YC commands: Logged into [startupschool.org](https://www.startupschool.org/) in Chrome, macOS
+- For Speedrun commands: No auth required (public API)
+- For SPC commands: Chrome browser (for form auto-fill via Chrome automation)
 
 ## Quick Reference
 
 ```bash
+# YC Startup School
 yc whoami                    # Test connection, show user info
 yc dashboard                 # Show streak, curriculum, weekly status
 yc updates                   # List all weekly updates
 yc show <id>                 # Show a single update in detail
 yc new                       # Submit new weekly update (interactive)
 yc new --metric 5 --morale 7 --talked-to 3   # Non-interactive
+
+# a16z Speedrun
+yc speedrun template         # Generate JSON template
+yc speedrun apply            # Interactive application
+yc speedrun apply --from-json app.json   # Submit from JSON file
+yc speedrun apply --from-json app.json --dry-run  # Validate without submitting
+yc speedrun upload-deck deck.pdf   # Upload pitch deck
+
+# South Park Commons
+yc spc info                  # Show form URLs and program details
+yc spc template              # Generate JSON template (fellowship)
+yc spc template --type membership  # Template for community membership
+yc spc apply                 # Interactive application
+yc spc apply --from-json app.json  # Fill from JSON file
+yc spc apply --from-json app.json --dry-run --headed  # Preview
+yc spc open                  # Open form in browser
 ```
 
-## Commands
+## YC Startup School Commands
 
 ### `yc whoami`
 Test your connection and display user info (name, track, slug).
@@ -81,9 +103,53 @@ yc new \
   --goal "Set up analytics"
 ```
 
+## a16z Speedrun Commands
+
+### `yc speedrun template`
+Generate a JSON template for a Speedrun application. Save it, fill in your details, then submit with `--from-json`.
+
+### `yc speedrun apply`
+Submit a Speedrun application. Two modes:
+
+**Interactive mode** (prompts for all fields):
+```bash
+yc speedrun apply
+```
+
+**From JSON file** (for automation / repeat submissions):
+```bash
+# Generate template, edit it, submit
+yc speedrun template > my-app.json
+# ... edit my-app.json with your details ...
+yc speedrun apply --from-json my-app.json
+
+# Dry run first to validate
+yc speedrun apply --from-json my-app.json --dry-run
+```
+
+### `yc speedrun upload-deck <file>`
+Upload a pitch deck PDF and get the GCS URL to include in your application.
+
+```bash
+yc speedrun upload-deck pitch.pdf
+```
+
+### Speedrun Categories
+```
+B2B / Enterprise Applications
+Consumer Applications
+Deep Tech
+Gaming / Entertainment Studio
+Infrastructure / Dev Tools
+Healthcare
+GovTech
+Web3
+Other
+```
+
 ## Global Options
 
-All commands support:
+YC Startup School commands support:
 - `--cookie-source <browser>` — Browser to read cookies from (chrome, safari, firefox). Default: chrome
 - `--chrome-profile <name>` — Specific Chrome profile directory name
 - `--json` — Output raw JSON (for scripting)
@@ -92,29 +158,89 @@ All commands support:
 
 ### Weekly Update Routine
 ```bash
-# Check if this week's update is submitted
-yc dashboard
-
-# If not, submit it
-yc new
-
-# Verify it shows up
-yc updates
+yc dashboard            # Check status
+yc new                  # Submit if needed
+yc updates              # Verify
 ```
 
-### Automation with Claude Code
-When the user asks to submit their weekly update, use the `yc new` command with flags:
+### Speedrun Application via Claude Code
+When the user asks to apply to a16z Speedrun, generate a JSON template, fill it with their info, and submit:
 ```bash
-yc new --metric <value> --morale <1-10> --talked-to <count> \
-  --change "summary" --blocker "obstacle" --goal "goal1" --goal "goal2"
+yc speedrun template > /tmp/speedrun-app.json
+# ... Claude fills in the JSON ...
+yc speedrun apply --from-json /tmp/speedrun-app.json --dry-run  # Validate first
+yc speedrun apply --from-json /tmp/speedrun-app.json            # Submit
+```
+
+## South Park Commons Commands
+
+SPC uses Airtable Interface forms. The CLI fills and submits via Playwright (headless Chromium).
+
+### `yc spc info`
+Show available SPC programs and their Airtable form URLs.
+
+### `yc spc template`
+Generate a JSON template for an SPC application.
+
+```bash
+yc spc template                    # Founder Fellowship (default)
+yc spc template --type membership  # Community Membership
+```
+
+### `yc spc apply`
+Fill and submit an SPC application via Playwright (headless browser).
+
+```bash
+yc spc apply                                          # Interactive
+yc spc apply --from-json my-app.json                  # From JSON file
+yc spc apply --from-json my-app.json --dry-run        # Fill but don't submit
+yc spc apply --from-json my-app.json --headed         # Show browser window
+yc spc apply --from-json my-app.json --dry-run --headed  # Visual review
+```
+
+### `yc spc open`
+Open the SPC application form in your default browser.
+
+```bash
+yc spc open                    # Founder Fellowship
+yc spc open --type membership  # Community Membership
+```
+
+### SPC Programs
+
+| Program | Funding | Duration |
+|---------|---------|----------|
+| Founder Fellowship | $400K for 7% + $600K follow-on | Cohort-based (Spring/Fall) |
+| Community Membership | No funding | Up to 6 months |
+
+## Workflows
+
+### Weekly Update Routine
+```bash
+yc dashboard            # Check status
+yc new                  # Submit if needed
+yc updates              # Verify
+```
+
+### Speedrun Application via Claude Code
+When the user asks to apply to a16z Speedrun, generate a JSON template, fill it with their info, and submit:
+```bash
+yc speedrun template > /tmp/speedrun-app.json
+# ... Claude fills in the JSON ...
+yc speedrun apply --from-json /tmp/speedrun-app.json --dry-run  # Validate first
+yc speedrun apply --from-json /tmp/speedrun-app.json            # Submit
+```
+
+### SPC Application via Claude Code
+```bash
+yc spc template > /tmp/spc-app.json                        # Generate template
+# ... Claude fills in the JSON ...
+yc spc apply --from-json /tmp/spc-app.json --dry-run --headed  # Preview in browser
+yc spc apply --from-json /tmp/spc-app.json                     # Submit
 ```
 
 ## Authentication
 
-YC CLI extracts session cookies directly from your browser — no API keys or tokens needed. Just log in to startupschool.org in Chrome and the CLI handles the rest.
-
-If you get authentication errors:
-1. Open Chrome and visit https://www.startupschool.org/
-2. Make sure you're logged in (can see dashboard)
-3. Try running `yc whoami` again
-4. If still failing, log out and back in to refresh your session
+- **YC Startup School**: Extracts session cookies from Chrome — log in at startupschool.org first.
+- **a16z Speedrun**: No authentication needed. The API is public.
+- **South Park Commons**: No auth needed. Uses Playwright (headless Chromium) to fill Airtable forms.
