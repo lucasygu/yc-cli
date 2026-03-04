@@ -1,7 +1,7 @@
 {
   "name": "@lucasygu/yc-cli",
-  "version": "0.2.0",
-  "description": "CLI for YC Startup School + a16z Speedrun — weekly updates, dashboard, applications from the terminal",
+  "version": "0.3.0",
+  "description": "CLI for YC Startup School, a16z Speedrun, South Park Commons & startup program discovery — from the terminal",
   "type": "module",
   "main": "./dist/lib/client.js",
   "exports": {
@@ -35,6 +35,12 @@
     "startup-school",
     "a16z",
     "speedrun",
+    "south-park-commons",
+    "spc",
+    "accelerator",
+    "fellowship",
+    "incubator",
+    "discover",
     "cli",
     "claude-code",
     "claude-code-skill"

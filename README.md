@@ -1,6 +1,6 @@
-# yc — CLI for YC Startup School, a16z Speedrun & South Park Commons
+# yc — CLI for YC Startup School, a16z Speedrun, SPC & Startup Discovery
 
-A CLI tool for managing your YC Startup School journey, submitting a16z Speedrun applications, and applying to South Park Commons — all from the terminal.
+A CLI tool for managing your YC Startup School journey, submitting a16z Speedrun and South Park Commons applications, and discovering 24+ accelerators, fellowships, and incubators — all from the terminal.
 
 > ### Easiest way to get started
 >
@@ -38,6 +38,7 @@ After installing, run `yc whoami` to verify the connection. If macOS shows a Key
 - **Speedrun applications** — Apply to a16z Speedrun with a JSON template or interactively
 - **Deck upload** — Upload pitch deck PDFs for Speedrun applications
 - **SPC applications** — Apply to South Park Commons Founder Fellowship or Community Membership via Playwright browser automation
+- **Program discovery** — Browse 24+ curated accelerators, fellowships, and incubators with deadlines, terms, and application links
 
 When used through an AI agent, these workflows chain together automatically. Each CLI command also works standalone.
 
@@ -58,6 +59,16 @@ yc speedrun apply            # Interactive application
 yc speedrun apply --from-json app.json        # Submit from JSON
 yc speedrun apply --from-json app.json --dry-run  # Validate only
 yc speedrun upload-deck deck.pdf              # Upload pitch deck
+
+# Discover Programs
+yc discover                  # Overview — deadlines + rolling programs
+yc discover list             # Browse all 24+ programs
+yc discover list --type fellowship   # Filter by type
+yc discover list --stage pre-seed    # Filter by stage
+yc discover deadlines        # Upcoming deadlines sorted by date
+yc discover show yc          # Full details for a program
+yc discover search "deep tech"       # Search by name/focus/description
+yc discover open yc          # Open application page in browser
 
 # South Park Commons
 yc spc info                  # Show programs and form URLs
@@ -85,6 +96,12 @@ yc spc open                  # Open form in browser
 | `spc template` | Generate a JSON template for SPC application |
 | `spc apply` | Fill and submit SPC application via Playwright |
 | `spc open` | Open SPC application form in browser |
+| `discover` | Overview — upcoming deadlines and rolling programs |
+| `discover list` | Browse all programs (with `--type`, `--stage`, `--focus`, `--tier` filters) |
+| `discover deadlines` | Upcoming deadlines sorted by closing date |
+| `discover show <slug>` | Full details for a program |
+| `discover search <query>` | Search programs by name, focus, or description |
+| `discover open <slug>` | Open program website or application in browser |
 
 ### Global Options (YC Startup School)
 
@@ -121,6 +138,16 @@ yc spc open                  # Open form in browser
 | `--from-json <file>` | Load application from JSON file | — |
 | `--dry-run` | Fill form but do not submit | `false` |
 | `--headed` | Show browser window (default: headless) | `false` |
+
+### Discover Options (`yc discover list`)
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--type <type>` | Filter: `accelerator`, `fellowship`, `incubator`, `community` | all |
+| `--stage <stage>` | Filter: `pre-idea`, `pre-seed`, `seed` | all |
+| `--focus <focus>` | Filter by focus area: `ai`, `deep-tech`, `fintech`, etc. | all |
+| `--tier <tier>` | Filter: `1` (elite), `2` (major), `3` (notable) | all |
+| `--json` | Output as JSON | `false` |
 
 ### Speedrun Categories
 

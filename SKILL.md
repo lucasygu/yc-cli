@@ -1,8 +1,8 @@
 ---
-description: CLI for YC Startup School, a16z Speedrun, and South Park Commons — weekly updates, dashboard, applications
+description: CLI for YC Startup School, a16z Speedrun, SPC, and startup program discovery — weekly updates, dashboard, applications, accelerator deadlines
 allowed-tools: Bash, Read, Write
 name: yc
-version: 0.2.0
+version: 0.3.0
 metadata:
   openclaw:
     requires:
@@ -21,12 +21,16 @@ tags:
   - speedrun
   - south-park-commons
   - spc
+  - accelerator
+  - fellowship
+  - incubator
+  - discover
   - productivity
 ---
 
-# YC CLI — YC Startup School, a16z Speedrun, and South Park Commons
+# YC CLI — YC Startup School, a16z Speedrun, SPC & Startup Discovery
 
-CLI tool for managing your YC Startup School journey, submitting a16z Speedrun applications, and applying to South Park Commons — all from the terminal.
+CLI tool for managing your YC Startup School journey, submitting a16z Speedrun and SPC applications, and discovering 24+ accelerators, fellowships, and incubators — all from the terminal.
 
 ## Prerequisites
 
@@ -61,6 +65,16 @@ yc spc apply                 # Interactive application
 yc spc apply --from-json app.json  # Fill from JSON file
 yc spc apply --from-json app.json --dry-run --headed  # Preview
 yc spc open                  # Open form in browser
+
+# Discover Programs
+yc discover                  # Overview — deadlines + rolling programs
+yc discover list             # Browse all 24+ programs
+yc discover list --type fellowship   # Filter by type
+yc discover list --stage pre-seed    # Filter by stage
+yc discover deadlines        # Upcoming deadlines sorted by date
+yc discover show yc          # Full details for a program
+yc discover search "deep tech"       # Search by name/focus/description
+yc discover open yc          # Open application page in browser
 ```
 
 ## YC Startup School Commands
@@ -154,24 +168,6 @@ YC Startup School commands support:
 - `--chrome-profile <name>` — Specific Chrome profile directory name
 - `--json` — Output raw JSON (for scripting)
 
-## Workflows
-
-### Weekly Update Routine
-```bash
-yc dashboard            # Check status
-yc new                  # Submit if needed
-yc updates              # Verify
-```
-
-### Speedrun Application via Claude Code
-When the user asks to apply to a16z Speedrun, generate a JSON template, fill it with their info, and submit:
-```bash
-yc speedrun template > /tmp/speedrun-app.json
-# ... Claude fills in the JSON ...
-yc speedrun apply --from-json /tmp/speedrun-app.json --dry-run  # Validate first
-yc speedrun apply --from-json /tmp/speedrun-app.json            # Submit
-```
-
 ## South Park Commons Commands
 
 SPC uses Airtable Interface forms. The CLI fills and submits via Playwright (headless Chromium).
@@ -213,6 +209,33 @@ yc spc open --type membership  # Community Membership
 | Founder Fellowship | $400K for 7% + $600K follow-on | Cohort-based (Spring/Fall) |
 | Community Membership | No funding | Up to 6 months |
 
+## Discover Commands
+
+Browse 24+ curated accelerators, fellowships, and incubators with deadlines, terms, and application links.
+
+### `yc discover`
+Overview of programs with open/upcoming deadlines plus rolling programs. Default command.
+
+### `yc discover list`
+Browse all programs in a table format. Filter with options:
+- `--type <type>` — Filter: `accelerator`, `fellowship`, `incubator`, `community`
+- `--stage <stage>` — Filter: `pre-idea`, `pre-seed`, `seed`
+- `--focus <focus>` — Filter by focus area: `ai`, `deep-tech`, `fintech`, etc.
+- `--tier <tier>` — Filter: `1` (elite), `2` (major), `3` (notable)
+- `--json` — Output as JSON
+
+### `yc discover deadlines`
+All upcoming deadlines sorted by closing date.
+
+### `yc discover show <slug>`
+Full details for a specific program — investment terms, equity, deadlines, focus areas, application URL.
+
+### `yc discover search <query>`
+Search programs by name, focus area, or description.
+
+### `yc discover open <slug>`
+Open a program's application page in the default browser.
+
 ## Workflows
 
 ### Weekly Update Routine
@@ -237,6 +260,14 @@ yc spc template > /tmp/spc-app.json                        # Generate template
 # ... Claude fills in the JSON ...
 yc spc apply --from-json /tmp/spc-app.json --dry-run --headed  # Preview in browser
 yc spc apply --from-json /tmp/spc-app.json                     # Submit
+```
+
+### Program Discovery
+```bash
+yc discover                         # What's open right now?
+yc discover list --type fellowship  # Browse fellowships
+yc discover show yc                 # Deep dive on YC
+yc discover open yc                 # Open YC application
 ```
 
 ## Authentication

@@ -30,6 +30,14 @@ import {
   type SpcFounder,
   type SpcFormType,
 } from "./lib/spc.js";
+import {
+  loadPrograms,
+  filterPrograms,
+  getUpcomingDeadlines,
+  searchPrograms,
+  type Program,
+  type ProgramType,
+} from "./lib/programs.js";
 
 const program = new Command();
 
@@ -876,6 +884,256 @@ spcApply.action(async (opts) => {
   } catch (err) {
     handleError(err);
   }
+});
+
+// --- discover ---
+
+const discover = program
+  .command("discover")
+  .description("Discover accelerators, fellowships, and incubators");
+
+// --- discover list ---
+
+const discoverList = discover
+  .command("list")
+  .description("List all programs")
+  .option("--type <type>", "Filter by type: accelerator, fellowship, incubator, community")
+  .option("--stage <stage>", "Filter by stage: pre-idea, pre-seed, seed")
+  .option("--focus <focus>", "Filter by focus area: ai, deep-tech, fintech, etc.")
+  .option("--tier <tier>", "Filter by tier: 1 (elite), 2 (major), 3 (notable)");
+addJsonOption(discoverList);
+
+discoverList.action((opts) => {
+  const programs = loadPrograms();
+  const filtered = filterPrograms(programs, {
+    type: opts.type as ProgramType | undefined,
+    stage: opts.stage,
+    focus: opts.focus,
+    tier: opts.tier ? Number(opts.tier) : undefined,
+  });
+
+  if (opts.json) {
+    console.log(JSON.stringify(filtered, null, 2));
+    return;
+  }
+
+  if (filtered.length === 0) {
+    console.log(kleur.dim("No programs match your filters."));
+    return;
+  }
+
+  console.log(kleur.bold(`Programs (${filtered.length})`));
+  console.log();
+
+  const tierLabel = (t: number) => t === 1 ? kleur.yellow("★") : t === 2 ? kleur.dim("◆") : kleur.dim("·");
+
+  for (const p of filtered) {
+    const typeTag = kleur.dim(`[${p.type}]`);
+    const openDeadlines = p.deadlines.filter((d) => d.status === "open");
+    const status = openDeadlines.length > 0
+      ? kleur.green(" OPEN")
+      : p.cycle === "rolling" ? kleur.cyan(" Rolling") : "";
+
+    console.log(`  ${tierLabel(p.tier)} ${kleur.bold(p.name)} ${typeTag}${status}`);
+    console.log(`    ${kleur.dim(p.investment || "No investment")} · ${kleur.dim(p.equity || "No equity")} · ${kleur.dim(p.location || "")}`);
+  }
+});
+
+// --- discover deadlines ---
+
+const discoverDeadlines = discover
+  .command("deadlines")
+  .description("Show upcoming deadlines sorted by date");
+addJsonOption(discoverDeadlines);
+
+discoverDeadlines.action((opts) => {
+  const programs = loadPrograms();
+  const upcoming = getUpcomingDeadlines(programs);
+
+  if (opts.json) {
+    console.log(JSON.stringify(upcoming, null, 2));
+    return;
+  }
+
+  if (upcoming.length === 0) {
+    console.log(kleur.dim("No upcoming deadlines found."));
+    console.log(kleur.dim("Many programs have rolling admissions — use 'yc discover list' to browse."));
+    return;
+  }
+
+  console.log(kleur.bold("Upcoming Deadlines"));
+  console.log();
+
+  for (const { program: p, deadline: d } of upcoming) {
+    const statusColor = d.status === "open" ? kleur.green : kleur.yellow;
+    const closeStr = d.closes || "Rolling";
+    console.log(`  ${statusColor(closeStr.padEnd(12))} ${kleur.bold(p.name)} — ${d.batch}`);
+    if (d.opens) {
+      console.log(`  ${" ".repeat(12)} Opens: ${kleur.dim(d.opens)}`);
+    }
+  }
+});
+
+// --- discover show ---
+
+const discoverShow = discover
+  .command("show <slug>")
+  .description("Show full details for a program");
+addJsonOption(discoverShow);
+
+discoverShow.action((slug, opts) => {
+  const programs = loadPrograms();
+  const program_entry = programs.find((p) => p.slug === slug);
+
+  if (!program_entry) {
+    // Try search
+    const matches = searchPrograms(programs, slug);
+    if (matches.length > 0) {
+      console.error(kleur.red(`Program "${slug}" not found. Did you mean:`));
+      for (const m of matches.slice(0, 5)) {
+        console.error(`  ${kleur.bold(m.slug)} — ${m.name}`);
+      }
+    } else {
+      console.error(kleur.red(`Program "${slug}" not found. Use 'yc discover list' to see all programs.`));
+    }
+    process.exit(1);
+  }
+
+  const p = program_entry;
+
+  if (opts.json) {
+    console.log(JSON.stringify(p, null, 2));
+    return;
+  }
+
+  const tierLabel = p.tier === 1 ? "Elite" : p.tier === 2 ? "Major" : "Notable";
+
+  console.log(kleur.bold(p.name) + (p.organization ? kleur.dim(` by ${p.organization}`) : ""));
+  console.log(kleur.dim(p.description));
+  console.log();
+  console.log(`  Type:       ${p.type} (Tier ${p.tier} — ${tierLabel})`);
+  console.log(`  Investment: ${p.investment || "None"}`);
+  console.log(`  Equity:     ${p.equity || "None"}`);
+  console.log(`  Duration:   ${p.duration || "Varies"}`);
+  console.log(`  Cycle:      ${p.cycle}`);
+  console.log(`  Location:   ${p.location || "Unknown"}`);
+  if (p.remote) console.log(`  Remote:     ${kleur.green("Yes")}`);
+  if (p.focus?.length) console.log(`  Focus:      ${p.focus.join(", ")}`);
+  if (p.stage?.length) console.log(`  Stage:      ${p.stage.join(", ")}`);
+  console.log();
+  console.log(`  Website:    ${kleur.cyan(p.website)}`);
+  if (p.applicationUrl) console.log(`  Apply:      ${kleur.cyan(p.applicationUrl)}`);
+
+  if (p.deadlines.length > 0) {
+    console.log();
+    console.log(kleur.bold("  Deadlines:"));
+    for (const d of p.deadlines) {
+      const statusColor = d.status === "open" ? kleur.green : d.status === "upcoming" ? kleur.yellow : kleur.dim;
+      const closeStr = d.closes || "Rolling";
+      console.log(`    ${statusColor(d.status?.toUpperCase().padEnd(8) || "")} ${d.batch} — closes ${closeStr}${d.opens ? ` (opens ${d.opens})` : ""}`);
+      if (d.notes) console.log(`             ${kleur.dim(d.notes)}`);
+    }
+  }
+
+  if (p.notes) {
+    console.log();
+    console.log(`  Notes: ${kleur.dim(p.notes)}`);
+  }
+  console.log();
+  console.log(kleur.dim(`  Last verified: ${p.lastVerified}`));
+});
+
+// --- discover search ---
+
+const discoverSearch = discover
+  .command("search <query>")
+  .description("Search programs by name, focus, or description");
+addJsonOption(discoverSearch);
+
+discoverSearch.action((query, opts) => {
+  const programs = loadPrograms();
+  const results = searchPrograms(programs, query);
+
+  if (opts.json) {
+    console.log(JSON.stringify(results, null, 2));
+    return;
+  }
+
+  if (results.length === 0) {
+    console.log(kleur.dim(`No programs matching "${query}".`));
+    return;
+  }
+
+  console.log(kleur.bold(`Search: "${query}" (${results.length} results)`));
+  console.log();
+
+  for (const p of results) {
+    const typeTag = kleur.dim(`[${p.type}]`);
+    console.log(`  ${kleur.bold(p.name)} ${typeTag}`);
+    console.log(`    ${kleur.dim(p.description.slice(0, 100))}${p.description.length > 100 ? "..." : ""}`);
+  }
+});
+
+// --- discover open ---
+
+const discoverOpen = discover
+  .command("open <slug>")
+  .description("Open program website or application in browser");
+
+discoverOpen.action(async (slug) => {
+  const programs = loadPrograms();
+  const p = programs.find((pr) => pr.slug === slug);
+
+  if (!p) {
+    console.error(kleur.red(`Program "${slug}" not found.`));
+    process.exit(1);
+  }
+
+  const url = p.applicationUrl || p.website;
+  console.log(kleur.dim(`Opening ${p.name}...`));
+  const { execFile } = await import("node:child_process");
+  execFile("open", [url]);
+  console.log(kleur.green(`Opened: ${url}`));
+});
+
+// --- discover (default action — show upcoming deadlines) ---
+
+discover.action((opts) => {
+  const programs = loadPrograms();
+  const upcoming = getUpcomingDeadlines(programs);
+  const rolling = programs.filter((p) => p.cycle === "rolling");
+
+  console.log(kleur.bold("Startup Programs — Overview"));
+  console.log(kleur.dim(`${programs.length} programs tracked`));
+  console.log();
+
+  if (upcoming.length > 0) {
+    console.log(kleur.bold("Upcoming Deadlines"));
+    for (const { program: p, deadline: d } of upcoming.slice(0, 10)) {
+      const statusColor = d.status === "open" ? kleur.green : kleur.yellow;
+      const closeStr = d.closes || "Rolling";
+      console.log(`  ${statusColor(closeStr.padEnd(12))} ${kleur.bold(p.name)} — ${d.batch}`);
+    }
+    if (upcoming.length > 10) {
+      console.log(kleur.dim(`  ... and ${upcoming.length - 10} more. Use 'yc discover deadlines' to see all.`));
+    }
+    console.log();
+  }
+
+  if (rolling.length > 0) {
+    console.log(kleur.bold("Rolling Admissions"));
+    for (const p of rolling) {
+      console.log(`  ${kleur.cyan("Always open")}  ${kleur.bold(p.name)}`);
+    }
+    console.log();
+  }
+
+  console.log(kleur.dim("Commands:"));
+  console.log(kleur.dim("  yc discover list                  Browse all programs"));
+  console.log(kleur.dim("  yc discover list --type fellowship Filter by type"));
+  console.log(kleur.dim("  yc discover show <slug>           Full program details"));
+  console.log(kleur.dim("  yc discover search <query>        Search programs"));
+  console.log(kleur.dim("  yc discover open <slug>           Open in browser"));
 });
 
 program.parse();
