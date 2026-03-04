@@ -1,6 +1,6 @@
 {
   "name": "@lucasygu/yc",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "CLI for YC Startup School, a16z Speedrun, South Park Commons & startup program discovery — from the terminal",
   "type": "module",
   "main": "./dist/lib/client.js",
