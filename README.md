@@ -6,7 +6,7 @@ A CLI tool for managing your YC Startup School journey, submitting a16z Speedrun
 >
 > Paste this to your AI coding agent (Claude Code, Cursor, Codex, Windsurf, OpenClaw, etc.):
 >
-> **"Install the `@lucasygu/yc-cli` tool via npm and run `yc whoami` to verify it works. Repo: https://github.com/lucasygu/yc-cli"**
+> **"Install the `@lucasygu/yc` tool via npm and run `yc whoami` to verify it works. Repo: https://github.com/lucasygu/yc-cli"**
 >
 > OpenClaw users can also run: **`clawhub install yc`**
 >
@@ -17,7 +17,7 @@ A CLI tool for managing your YC Startup School journey, submitting a16z Speedrun
 ## Install
 
 ```bash
-npm install -g @lucasygu/yc-cli
+npm install -g @lucasygu/yc
 # Or via ClawHub (OpenClaw ecosystem)
 clawhub install yc
 ```

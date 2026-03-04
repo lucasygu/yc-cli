@@ -10,7 +10,7 @@ metadata:
         - yc
     install:
       - kind: node
-        package: "@lucasygu/yc-cli"
+        package: "@lucasygu/yc"
         bins: [yc]
     os: [macos]
     homepage: https://github.com/lucasygu/yc-cli

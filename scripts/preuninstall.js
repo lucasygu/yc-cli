@@ -33,7 +33,7 @@ function main() {
     }
 
     const target = readlinkSync(SKILL_LINK);
-    if (target === PACKAGE_ROOT || target.includes('node_modules/@lucasygu/yc-cli')) {
+    if (target === PACKAGE_ROOT || target.includes('node_modules/@lucasygu/yc')) {
       unlinkSync(SKILL_LINK);
       console.log('[yc-cli] Removed Claude Code skill symlink.');
     } else {

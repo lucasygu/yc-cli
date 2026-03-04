@@ -1,5 +1,5 @@
 {
-  "name": "@lucasygu/yc-cli",
+  "name": "@lucasygu/yc",
   "version": "0.3.0",
   "description": "CLI for YC Startup School, a16z Speedrun, South Park Commons & startup program discovery — from the terminal",
   "type": "module",
