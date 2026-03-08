@@ -2,7 +2,7 @@
 description: CLI for YC Startup School, a16z Speedrun, SPC, and startup program discovery — weekly updates, dashboard, applications, accelerator deadlines
 allowed-tools: Bash, Read, Write
 name: yc
-version: 0.3.1
+version: 0.3.2
 metadata:
   openclaw:
     requires:
